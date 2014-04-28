@@ -1,9 +1,10 @@
 var https = require('https'),
     doneRE = new RegExp('first'),
     MongoClient = require('mongodb').MongoClient,
-    format = require('util').format;
+    format = require('util').format,
+    developers = [];
 
-function inspectHeaders(headers, nextPage, mongoCollection) {
+function inspectHeaders(headers, nextPage) {
     var now = Number((Date.now() + '').slice(0, -3),
         remaining = Number(headers['x-ratelimit-remaining'])),
         reset = Number(headers['x-ratelimit-reset']);
@@ -14,46 +15,51 @@ function inspectHeaders(headers, nextPage, mongoCollection) {
     if (remaining === 1) {
         console.log('At request limit wait ' + (reset - now) + 'seconds');
         setTimeout(function () {
-            getDeveloperData(inspectHeaders, collectData, nextPage, mongoCollection);
+            getDeveloperData(inspectHeaders, collectData, nextPage);
         }, (reset - now) * 1000);
     } else {
         if (doneRE.test(headers.link.split(',')[0])) {
             allDone();
         } else {
-            getDeveloperData(inspectHeaders, collectData, nextPage, mongoCollection);
+            getDeveloperData(inspectHeaders, collectData, nextPage);
         }
     }
 
 }
 
-function collectData(data, mongoCollection) {
-    var l = data.items.length, i = 0, dev;
-    console.log('developers this payload', l);
-    while (i < l) {
-        dev = data.items[i];
-        mongoCollection.insert(dev, function (err, docs) {
-            if (err) {
-                throw err;
-            }
-        
-        });
-        i += 1;
-    }
-    console.log('records added');
-    mongoCollection.count(function(err, count) {
-        console.log(format("count = %s", count));
-    });
+function collectData(data) {
+    var l = data.items.length;
+    developers = developers.concat(data.items);
+    console.log('developers this payload: ', data.items.length);
+    console.log('developers so far: ', developers.length);
 }
 
 function allDone() {
     console.log("FINNISHED!!!");
+    console.log("Do mongo..");
+    MongoClient.connect('mongodb://127.0.0.1:27017/developers', function(err, db) {
+        if(err) {
+            throw err;
+        }
+        var collection = db.collection('bristol');
+        collection.insert(developers, function (err, docs) {
+            if (err) {
+                throw err;
+            }
+            console.log('records added');
+            collection.count(function(err, count) {
+                console.log(format("count = %s", count));
+                db.close();
+            });
+        
+        });
+    });
 }
 
 function getDeveloperData(
     inspectHeadersCB,
     collectDataCB,
-    page,
-    mongoCollection
+    page
 ) {
     page = page || 1;
     var buffer = [],
@@ -71,10 +77,9 @@ function getDeveloperData(
             buffer.push(d);
         });
         res.on('end', function () {
-            inspectHeadersCB(res.headers, page + 1, mongoCollection);
+            inspectHeadersCB(res.headers, page + 1);
             collectDataCB(
-                JSON.parse(buffer.join('')),
-                mongoCollection
+                JSON.parse(buffer.join(''))
             );
         });
 
@@ -85,10 +90,4 @@ function getDeveloperData(
 
 }
 
-MongoClient.connect('mongodb://127.0.0.1:27017/developers', function(err, db) {
-    if(err) {
-        throw err;
-    }
-    var collection = db.collection('bristol');
-    getDeveloperData(inspectHeaders, collectData, 1, collection);
-});
+getDeveloperData(inspectHeaders, collectData, 1);
