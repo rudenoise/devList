@@ -41,18 +41,30 @@ function allDone() {
         if(err) {
             throw err;
         }
-        var collection = db.collection('bristol');
-        collection.insert(developers, function (err, docs) {
-            if (err) {
-                throw err;
-            }
-            console.log('records added');
-            collection.count(function(err, count) {
-                console.log(format("count = %s", count));
-                db.close();
-            });
-        
-        });
+        var collection = db.collection('bristol'),
+            total = developers.length,
+            l = total - 1;
+        while (l >= 0) {
+            collection.update(
+                {login: developers[l].login},
+                developers[l],
+                {upsert: true},
+                function (err, docs) {
+                    if (err) {
+                        throw err;
+                    }
+                    total = total - 1;
+                    if (total === 0) {
+                        collection.count(function(err, count) {
+                            console.log(format("%s records added/updated", count));
+                            db.close();
+                        });
+                    }
+
+                }
+            );
+            l = l - 1;
+        }
     });
 }
 
