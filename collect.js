@@ -8,19 +8,20 @@ function inspectHeaders(headers, nextPage) {
     var now = Number((Date.now() + '').slice(0, -3),
         remaining = Number(headers['x-ratelimit-remaining'])),
         reset = Number(headers['x-ratelimit-reset']);
+    /*
     console.log("link: ", headers.link);
     console.log("ratelimit: ", headers.ratelimit);
     console.log("reset: ", reset);
-    console.log("remaining: ", remaining);
+    */
+    console.log("requests remaining: ", remaining);
     if (remaining === 1) {
-        console.log('At request limit wait ' + (reset - now) + 'seconds');
+        console.log('request limit hit, waiting ' + (reset - now) + 'seconds');
         setTimeout(function () {
             getDeveloperData(inspectHeaders, collectData, nextPage);
         }, (reset - now) * 1000);
     } else {
-        if (doneRE.test(headers.link.split(',')[0])) {
-            allDone();
-        } else {
+        if (!doneRE.test(headers.link.split(',')[0])) {
+            // we're not at the end yet, page
             getDeveloperData(inspectHeaders, collectData, nextPage);
         }
     }
@@ -30,13 +31,15 @@ function inspectHeaders(headers, nextPage) {
 function collectData(data) {
     var l = data.items.length;
     developers = developers.concat(data.items);
-    console.log('developers this payload: ', data.items.length);
+    //console.log('developers this payload: ', data.items.length);
     console.log('developers so far: ', developers.length);
+    if (developers.length === data.total_count) {
+        allDone();
+    }
 }
 
 function allDone() {
-    console.log("FINNISHED!!!");
-    console.log("Do mongo..");
+    console.log("data buffered, save...");
     MongoClient.connect('mongodb://127.0.0.1:27017/developers', function(err, db) {
         if(err) {
             throw err;
@@ -55,8 +58,13 @@ function allDone() {
                     }
                     total = total - 1;
                     if (total === 0) {
+                        // TODO
+                        // work out why I get 449 records written to
+                        // 455 developers looped
+                        // get all 455 on second pass
                         collection.count(function(err, count) {
                             console.log(format("%s records added/updated", count));
+                            console.log('THE END');
                             db.close();
                         });
                     }
@@ -84,7 +92,7 @@ function getDeveloperData(
             }
         };
     https.get(options, function(res) {
-        console.log("statusCode: ", res.statusCode);
+        //console.log("statusCode: ", res.statusCode);
         res.on('data', function (d) {
             buffer.push(d);
         });
