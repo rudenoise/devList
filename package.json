@@ -1,0 +1,12 @@
+{
+    "name": "bristol-developer-data",
+    "description": "A tool to mine data about the Bristol programmer community.",
+    "version": "0.0.1",
+    "devDependencies": {
+        "grunt-jslint": "1.1.4",
+        "grunt-contrib-watch": "0.3.1",
+        "mongodb": "*",
+        "mongoose": "*"
+    }
+
+}
