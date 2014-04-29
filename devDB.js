@@ -1,6 +1,6 @@
 var MongoClient = require('mongodb').MongoClient;
 
-function devDB(cb) {
+module.exports = function devDB(cb) {
     MongoClient.connect('mongodb://127.0.0.1:27017/developers', function(err, db) {
         if (err) {
             cb(err);
@@ -19,7 +19,7 @@ function devDB(cb) {
             count: function (cb) {
                 brisDevs.count(cb);
             },
-            findByExactLogin: function (loginString, cb) {
+            findByLogin: function (loginString, cb) {
                 brisDevs.findOne({
                     login: loginString
                 }, cb);
@@ -41,18 +41,3 @@ function devDB(cb) {
         });
     });
 }
-
-devDB(function (err, data) {
-    if (err) {
-        console.error(err);
-        process.exit(1);
-    }
-    data.addToUser('rudenoise', { updated: Date.now() }, function (err, results) {
-        if (err) {
-            console.error(err);
-            process.exit(1);
-        }
-        console.log(results);
-        process.exit(0);
-    });
-});
