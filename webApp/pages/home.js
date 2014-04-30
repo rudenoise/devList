@@ -1,7 +1,7 @@
-var lm = require('lms');
+var container = require('./container.js');
 
 module.exports = function (data) {
-    return lm([
+    return container([
         ['h1', 'We have ' + data.length + ' developers listed.'],
         ['ul', (function (devs) {
             var rtn = [], i = 0, l = devs.length;

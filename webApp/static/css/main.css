@@ -1,0 +1,24 @@
+html { height:100%; overflow: -o-paged-x;}
+body {
+    margin: 1em auto;
+    padding-left: .5em;
+    padding-right: 1.5em;
+    max-width: 640px;
+    font-size: 135%;
+    line-height: 1.5em;
+    background: #222;
+    color: #CCC;
+    font-family: OCRA, Arial;
+}
+@media only screen and (max-width: 400px) {
+    body {font-size: 100%;}
+}
+@font-face {
+    font-family: OCRA;
+    src: url('OCRA.ttf')
+}
+a { color: orange}
+h1 { line-height: 1em;}
+h2 { line-height: 1em; color: #FFF;}
+form {border: none}
+input {border: 1px solid #ccc}
