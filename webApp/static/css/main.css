@@ -15,7 +15,7 @@ body {
 }
 @font-face {
     font-family: OCRA;
-    src: url('OCRA.ttf')
+    src: url('/css/OCRA.ttf')
 }
 a { color: orange}
 h1 { line-height: 1em;}
