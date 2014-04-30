@@ -1,30 +1,52 @@
 $(function () {
-    console.log('!!!');
+    
+    function renderAvailable(d) {
+        return !d.hasOwnProperty('hireable') ?
+            ['button', 'check availability'] :
+            d.hireable === true ?
+                ['h2', 'This developer is available for hire.'] :
+                ['h2', 'This developer is off limits.']
+    }
+
     var Dev = Backbone.Model.extend({
-        urlRoot: '/dev/:login',
-        defaults: {
-            login: 'Empty user...',
-            avatar_url: 'img/placeHolder.jpg',
-            availableForHire: null
-        },
-        checkAvailable: function () {
-            console.log('check goes here');
-            this.save({availableForHire: true});
+        urlRoot: '/api/dev/',
+        defaults: {},
+        initialize: function (arguments) {
+            this.fetch();
         }
     });
+
     var AppView = Backbone.View.extend({
         el: $('#app'),
         initialize: function () {
-            console.log('----initialize');
             this.listenTo(this.model, "change", this.render);
-            this.model.checkAvailable();
             this.render();
         },
         render: function () {
-            console.log('----render', this.model);
-            this.$el.html('<button>' + this.model.toJSON() + '</button>');
+            this.$el.html(lms(renderAvailable(this.model.toJSON())));
+        },
+        events: {
+            'click button': 'getMoreData'
+        },
+        getMoreData: function () {
+            console.log();
+            var that = this;
+            jph('https://api.github.com/users/', true)(
+                [this.model.get('login')],
+                function (d) {
+                    that.model.save(d.data);
+                },
+                function () {
+                    console.log('error');
+                }
+            );
         }
 
     });
-    var App = new AppView({model: (new Dev({login: 'rudenoise'}))});
+
+    var App = new AppView({
+        model: (new Dev({
+            id: _.findLast(window.location.href.split('/'))
+        }))
+    });
 });

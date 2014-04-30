@@ -14,7 +14,7 @@ module.exports = function devDB(cb) {
         
         cb(null, {
             fetchAll: function (cb) {
-                brisDevs.find().toArray(cb);
+                brisDevs.find().sort({login: 1}).toArray(cb);
             },
             count: function (cb) {
                 brisDevs.count(cb);
@@ -22,6 +22,11 @@ module.exports = function devDB(cb) {
             findByLogin: function (loginString, cb) {
                 brisDevs.findOne({
                     login: loginString
+                }, cb);
+            },
+            findById: function (id, cb) {
+                brisDevs.findOne({
+                    id: Number(id)
                 }, cb);
             },
             findByLoginLike: function (loginLike, cb) {
