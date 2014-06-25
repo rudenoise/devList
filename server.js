@@ -1,7 +1,7 @@
 var express = require('express'),
     app = express(),
     server,
-    devDB = require('devDB'),
+    devDB = require('./devDB.js'),
     homeRender = require('./webApp/pages/home.js');
     devRender = require('./webApp/pages/dev.js');
 
