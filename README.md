@@ -1,3 +1,9 @@
+## Start Mongo
+```
+> cd devList
+> mongod --dbpath data/
+```
+
 ## Create Mongo Collection
 ```
 > use developers
@@ -5,8 +11,12 @@
 ```
 
 
-## Start Mongo
+## Collect Data
 ```
-> cd devList
-> mongod --dbpath data/
+> node collect.js
+```
+
+## Start the Node Server
+```
+> node server.js
 ```
